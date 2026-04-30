@@ -245,6 +245,19 @@ MAIL_DEFAULT_SENDER = os.environ.get("REDASH_MAIL_DEFAULT_SENDER", None)
 MAIL_MAX_EMAILS = os.environ.get("REDASH_MAIL_MAX_EMAILS", None)
 MAIL_ASCII_ATTACHMENTS = parse_boolean(os.environ.get("REDASH_MAIL_ASCII_ATTACHMENTS", "false"))
 
+# Email CSV export settings:
+EMAIL_CSV_COOLDOWN_SECONDS = int(os.environ.get("REDASH_EMAIL_CSV_COOLDOWN_SECONDS", 30))
+EMAIL_CSV_MAX_ATTACHMENT_SIZE_MB = int(os.environ.get("REDASH_EMAIL_CSV_MAX_ATTACHMENT_SIZE_MB", 25))
+
+# S3 storage for email CSV exports:
+S3_EMAIL_EXPORT_BUCKET = os.environ.get("REDASH_S3_EMAIL_EXPORT_BUCKET", None)
+S3_EMAIL_EXPORT_PREFIX = os.environ.get("REDASH_S3_EMAIL_EXPORT_PREFIX", "redash-csv-exports/")
+S3_EMAIL_EXPORT_ACCESS_KEY = os.environ.get("REDASH_S3_EMAIL_EXPORT_ACCESS_KEY", None)
+S3_EMAIL_EXPORT_SECRET_KEY = os.environ.get("REDASH_S3_EMAIL_EXPORT_SECRET_KEY", None)
+S3_EMAIL_EXPORT_REGION = os.environ.get("REDASH_S3_EMAIL_EXPORT_REGION", None)
+S3_EMAIL_EXPORT_LINK_MODE = parse_boolean(os.environ.get("REDASH_S3_EMAIL_EXPORT_LINK_MODE", "false"))
+S3_EMAIL_EXPORT_LINK_EXPIRY_SECONDS = int(os.environ.get("REDASH_S3_EMAIL_EXPORT_LINK_EXPIRY_SECONDS", 86400))
+
 
 def email_server_is_configured():
     return MAIL_DEFAULT_SENDER is not None

@@ -211,6 +211,11 @@ class UserResource(BaseResource):
 
         params = project(req, ("email", "name", "password", "old_password", "group_ids"))
 
+        if "email_export_enabled" in req:
+            if not self.current_user.has_permission("admin"):
+                abort(403, message="Must be admin to change email export setting.")
+            user.email_export_enabled = req["email_export_enabled"]
+
         if "password" in params and "old_password" not in params:
             abort(403, message="Must provide current password to update password.")
 

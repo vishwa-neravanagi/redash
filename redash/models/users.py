@@ -100,6 +100,7 @@ class User(TimestampMixin, db.Model, BelongsToOrgMixin, UserMixin, PermissionsCh
     _profile_image_url = json_cast_property(db.Text(), "details", "profile_image_url", default=None)
     is_invitation_pending = json_cast_property(db.Boolean(True), "details", "is_invitation_pending", default=False)
     is_email_verified = json_cast_property(db.Boolean(True), "details", "is_email_verified", default=True)
+    email_export_enabled = json_cast_property(db.Boolean(True), "details", "email_export_enabled", default=False)
 
     __tablename__ = "users"
     __table_args__ = (db.Index("users_org_id_email", "org_id", "email", unique=True),)
@@ -145,6 +146,7 @@ class User(TimestampMixin, db.Model, BelongsToOrgMixin, UserMixin, PermissionsCh
             "active_at": self.active_at,
             "is_invitation_pending": self.is_invitation_pending,
             "is_email_verified": self.is_email_verified,
+            "email_export_enabled": self.email_export_enabled,
         }
 
         if self.password_hash is None:

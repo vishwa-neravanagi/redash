@@ -331,6 +331,7 @@ def session(org_slug=None):
             "email": current_user.email,
             "groups": current_user.group_ids,
             "permissions": current_user.permissions,
+            "email_export_enabled": current_user.email_export_enabled,
         }
 
     return json_response(

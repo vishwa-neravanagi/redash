@@ -80,6 +80,7 @@ from redash.handlers.query_snippets import (
     QuerySnippetListResource,
     QuerySnippetResource,
 )
+from redash.handlers.email_csv import QueryResultEmailResource
 from redash.handlers.settings import OrganizationSettings
 from redash.handlers.users import (
     UserDisableResource,
@@ -283,5 +284,11 @@ api.add_org_resource(DestinationListResource, "/api/destinations", endpoint="des
 
 api.add_org_resource(QuerySnippetResource, "/api/query_snippets/<snippet_id>", endpoint="query_snippet")
 api.add_org_resource(QuerySnippetListResource, "/api/query_snippets", endpoint="query_snippets")
+
+api.add_org_resource(
+    QueryResultEmailResource,
+    "/api/query_results/<int:query_result_id>/email/<file_extension>",
+    endpoint="query_result_email",
+)
 
 api.add_org_resource(OrganizationSettings, "/api/settings/organization", endpoint="organization_settings")

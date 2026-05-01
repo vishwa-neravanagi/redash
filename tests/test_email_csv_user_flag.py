@@ -52,3 +52,8 @@ class TestEmailExportEnabledFlag(BaseTestCase):
         user = self.factory.user
         rv = self.make_request("get", "/api/session")
         self.assertIn("email_export_enabled", rv.json["user"])
+
+    def test_client_config_includes_cooldown(self):
+        rv = self.make_request("get", "/api/session")
+        self.assertIn("emailCsvCooldownSeconds", rv.json["client_config"])
+        self.assertEqual(rv.json["client_config"]["emailCsvCooldownSeconds"], 30)

@@ -290,7 +290,7 @@ def client_config():
         "pageSize": settings.PAGE_SIZE,
         "pageSizeOptions": settings.PAGE_SIZE_OPTIONS,
         "tableCellMaxJSONSize": settings.TABLE_CELL_MAX_JSON_SIZE,
-        "emailCsvCooldownSeconds": settings.EMAIL_CSV_COOLDOWN_SECONDS,
+        "emailCsvCooldownSeconds": current_org.get_setting("email_csv_cooldown_seconds"),
     }
 
     client_config.update(defaults)

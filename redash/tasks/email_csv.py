@@ -3,7 +3,7 @@ import time
 import boto3
 from flask_mail import Message
 
-from redash import mail, models, settings
+from redash import mail, models
 from redash.models import db
 from redash.serializers import serialize_query_result_to_dsv, serialize_query_result_to_xlsx
 from redash.worker import get_job_logger, job
@@ -32,44 +32,51 @@ def _generate_file_data(query_result, file_extension):
         return serialize_query_result_to_xlsx(query_result)
 
 
-def _get_s3_client():
+def _get_s3_client(org):
     kwargs = {}
-    if settings.S3_EMAIL_EXPORT_ACCESS_KEY and settings.S3_EMAIL_EXPORT_SECRET_KEY:
-        kwargs["aws_access_key_id"] = settings.S3_EMAIL_EXPORT_ACCESS_KEY
-        kwargs["aws_secret_access_key"] = settings.S3_EMAIL_EXPORT_SECRET_KEY
-    if settings.S3_EMAIL_EXPORT_REGION:
-        kwargs["region_name"] = settings.S3_EMAIL_EXPORT_REGION
+    access_key = org.get_setting("s3_email_export_access_key")
+    secret_key = org.get_setting("s3_email_export_secret_key")
+    if access_key and secret_key:
+        kwargs["aws_access_key_id"] = access_key
+        kwargs["aws_secret_access_key"] = secret_key
+    region = org.get_setting("s3_email_export_region")
+    if region:
+        kwargs["region_name"] = region
     return boto3.client("s3", **kwargs)
 
 
-def _upload_to_s3(filename, file_data, content_type):
-    s3 = _get_s3_client()
-    key = f"{settings.S3_EMAIL_EXPORT_PREFIX}{filename}"
+def _upload_to_s3(filename, file_data, content_type, org):
+    s3 = _get_s3_client(org)
+    prefix = org.get_setting("s3_email_export_prefix")
+    bucket = org.get_setting("s3_email_export_bucket")
+    key = f"{prefix}{filename}"
     s3.put_object(
-        Bucket=settings.S3_EMAIL_EXPORT_BUCKET,
+        Bucket=bucket,
         Key=key,
         Body=file_data,
         ContentType=content_type,
     )
 
-    if settings.S3_EMAIL_EXPORT_LINK_MODE:
+    if org.get_setting("s3_email_export_link_mode"):
         presigned_url = s3.generate_presigned_url(
             "get_object",
-            Params={"Bucket": settings.S3_EMAIL_EXPORT_BUCKET, "Key": key},
-            ExpiresIn=settings.S3_EMAIL_EXPORT_LINK_EXPIRY_SECONDS,
+            Params={"Bucket": bucket, "Key": key},
+            ExpiresIn=org.get_setting("s3_email_export_link_expiry_seconds"),
         )
         return presigned_url
 
-    return f"s3://{settings.S3_EMAIL_EXPORT_BUCKET}/{key}"
+    return f"s3://{bucket}/{key}"
 
 
 @job("emails")
-def email_csv_task(result_id, query_id, query_name, user_email, file_extension, note, filename=None):
+def email_csv_task(result_id, query_id, query_name, user_email, file_extension, note, filename=None, org_id=None):
     try:
         query_result = db.session.get(models.QueryResult, result_id)
         if not query_result:
             logger.error("QueryResult %s not found", result_id)
             return
+
+        org = models.Organization.get_by_id(org_id) if org_id else None
 
         if not filename:
             filename = _build_filename(query_name, query_id, result_id, file_extension)
@@ -86,15 +93,22 @@ def email_csv_task(result_id, query_id, query_name, user_email, file_extension, 
         body_parts.append(f"Exported at: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}")
 
         s3_url = None
-        if settings.S3_EMAIL_EXPORT_BUCKET:
+        s3_bucket = org.get_setting("s3_email_export_bucket") if org else ""
+        link_mode = org.get_setting("s3_email_export_link_mode") if org else False
+        if s3_bucket:
             try:
-                s3_url = _upload_to_s3(filename, file_data, content_type)
+                s3_url = _upload_to_s3(filename, file_data, content_type, org)
             except Exception:
                 logger.exception("Failed to upload %s to S3", filename)
 
-        if settings.S3_EMAIL_EXPORT_LINK_MODE and s3_url and s3_url.startswith("https://"):
+        if link_mode and s3_url and s3_url.startswith("https://"):
+            link_expiry = org.get_setting("s3_email_export_link_expiry_seconds") if org else 86400
             body_parts.append("")
-            body_parts.append(f"Download link (expires in {settings.S3_EMAIL_EXPORT_LINK_EXPIRY_SECONDS // 3600} hours):")
+            if link_expiry >= 3600:
+                expiry_display = f"{link_expiry // 3600} hours"
+            else:
+                expiry_display = f"{link_expiry // 60} minutes"
+            body_parts.append(f"Download link (expires in {expiry_display}):")
             body_parts.append(s3_url)
 
             message = Message(

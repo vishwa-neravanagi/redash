@@ -5,6 +5,7 @@ import UserInfoForm from "./UserInfoForm";
 import ApiKeyForm from "./ApiKeyForm";
 import PasswordForm from "./PasswordForm";
 import ToggleUserForm from "./ToggleUserForm";
+import EmailExportToggle from "./EmailExportToggle";
 
 export default function EditableUserProfile(props) {
   const [user, setUser] = useState(props.user);
@@ -24,6 +25,8 @@ export default function EditableUserProfile(props) {
           <ApiKeyForm user={user} onChange={setUser} />
           <hr />
           <PasswordForm user={user} />
+          <hr />
+          <EmailExportToggle user={user} onChange={setUser} />
         </React.Fragment>
       )}
       <hr />

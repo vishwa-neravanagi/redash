@@ -85,3 +85,24 @@ class TestEmailCsvEndpoint(BaseTestCase):
         )
         self.assertEqual(200, rv.status_code)
         mock_task.delay.assert_called_once()
+
+    @patch("redash.handlers.email_csv.email_csv_task")
+    def test_passes_org_id_to_task(self, mock_task):
+        rv = self.make_request(
+            "post",
+            "/api/query_results/{}/email/csv".format(self.query_result.id),
+            data={"query_id": self.query.id, "method": "immediate"},
+        )
+        self.assertEqual(200, rv.status_code)
+        call_kwargs = mock_task.delay.call_args[1]
+        self.assertEqual(call_kwargs["org_id"], self.factory.org.id)
+
+    def test_respects_org_max_attachment_size(self):
+        self.factory.org.set_setting("email_csv_max_attachment_size_mb", 0)
+        db.session.commit()
+        rv = self.make_request(
+            "post",
+            "/api/query_results/{}/email/csv".format(self.query_result.id),
+            data={"query_id": self.query.id, "method": "immediate"},
+        )
+        self.assertEqual(413, rv.status_code)

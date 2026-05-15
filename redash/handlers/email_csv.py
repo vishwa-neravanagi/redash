@@ -3,7 +3,7 @@ import time
 from flask import request
 from flask_restful import abort
 
-from redash import models, settings
+from redash import models
 from redash.handlers.base import BaseResource, get_object_or_404, record_event
 from redash.permissions import require_access, view_only
 from redash.serializers import serialize_query_result_to_dsv, serialize_query_result_to_xlsx
@@ -45,16 +45,17 @@ class QueryResultEmailResource(BaseResource):
                 query_name = query.name
 
         # Size check (only in non-link mode)
-        if not settings.S3_EMAIL_EXPORT_LINK_MODE:
+        if not self.current_org.get_setting("s3_email_export_link_mode"):
             if file_extension in ("csv", "tsv"):
                 delimiter = "," if file_extension == "csv" else "\t"
                 file_data = serialize_query_result_to_dsv(query_result, delimiter).encode("utf-8")
             else:
                 file_data = serialize_query_result_to_xlsx(query_result)
 
-            max_size_bytes = settings.EMAIL_CSV_MAX_ATTACHMENT_SIZE_MB * 1024 * 1024
+            max_size_mb = self.current_org.get_setting("email_csv_max_attachment_size_mb")
+            max_size_bytes = max_size_mb * 1024 * 1024
             if len(file_data) > max_size_bytes:
-                abort(413, message=f"File size exceeds maximum of {settings.EMAIL_CSV_MAX_ATTACHMENT_SIZE_MB} MB.")
+                abort(413, message=f"File size exceeds maximum of {max_size_mb} MB.")
 
         # Build filename for event logging
         timestamp_ns = time.time_ns()
@@ -64,8 +65,10 @@ class QueryResultEmailResource(BaseResource):
 
         # S3 path (intended)
         s3_path = None
-        if settings.S3_EMAIL_EXPORT_BUCKET:
-            s3_path = f"s3://{settings.S3_EMAIL_EXPORT_BUCKET}/{settings.S3_EMAIL_EXPORT_PREFIX}{filename}"
+        s3_bucket = self.current_org.get_setting("s3_email_export_bucket")
+        if s3_bucket:
+            s3_prefix = self.current_org.get_setting("s3_email_export_prefix")
+            s3_path = f"s3://{s3_bucket}/{s3_prefix}{filename}"
 
         # Record event
         record_event(
@@ -94,6 +97,7 @@ class QueryResultEmailResource(BaseResource):
             file_extension=file_extension,
             note=note,
             filename=filename,
+            org_id=self.current_org.id,
         )
 
         return {"message": "Email queued successfully."}

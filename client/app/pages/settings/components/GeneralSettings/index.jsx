@@ -5,6 +5,7 @@ import FormatSettings from "./FormatSettings";
 import PlotlySettings from "./PlotlySettings";
 import FeatureFlagsSettings from "./FeatureFlagsSettings";
 import BeaconConsentSettings from "./BeaconConsentSettings";
+import EmailCsvSettings from "./EmailCsvSettings";
 
 export default function GeneralSettings(props) {
   return (
@@ -15,6 +16,7 @@ export default function GeneralSettings(props) {
       <PlotlySettings {...props} />
       <FeatureFlagsSettings {...props} />
       <BeaconConsentSettings {...props} />
+      <EmailCsvSettings {...props} />
     </DynamicComponent>
   );
 }

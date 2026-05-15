@@ -1,4 +1,4 @@
-from redash.models import Organization
+from redash.models import Organization, db
 from tests import BaseTestCase
 
 
@@ -43,3 +43,51 @@ class TestOrganizationSettings(BaseTestCase):
 
         rv = self.make_request("get", "/api/settings/organization", user=admin)
         self.assertEqual(rv.json["settings"]["auth_google_apps_domains"], domains)
+
+
+class TestEmailCsvOrgSettings(BaseTestCase):
+    def test_get_returns_email_csv_defaults(self):
+        admin = self.factory.create_admin()
+        rv = self.make_request("get", "/api/settings/organization", user=admin)
+        self.assertEqual(rv.json["settings"]["email_csv_cooldown_seconds"], 30)
+        self.assertEqual(rv.json["settings"]["email_csv_max_attachment_size_mb"], 25)
+        self.assertEqual(rv.json["settings"]["s3_email_export_link_mode"], False)
+        self.assertEqual(rv.json["settings"]["s3_email_export_link_expiry_seconds"], 86400)
+
+    def test_post_email_csv_cooldown(self):
+        admin = self.factory.create_admin()
+        rv = self.make_request(
+            "post",
+            "/api/settings/organization",
+            data={"email_csv_cooldown_seconds": 60},
+            user=admin,
+        )
+        self.assertEqual(rv.json["settings"]["email_csv_cooldown_seconds"], 60)
+
+    def test_post_s3_email_export_settings(self):
+        admin = self.factory.create_admin()
+        rv = self.make_request(
+            "post",
+            "/api/settings/organization",
+            data={
+                "s3_email_export_bucket": "my-bucket",
+                "s3_email_export_region": "us-west-2",
+                "s3_email_export_link_mode": True,
+            },
+            user=admin,
+        )
+        self.assertEqual(rv.json["settings"]["s3_email_export_bucket"], "my-bucket")
+        self.assertEqual(rv.json["settings"]["s3_email_export_region"], "us-west-2")
+        self.assertEqual(rv.json["settings"]["s3_email_export_link_mode"], True)
+
+    def test_org_setting_overrides_default(self):
+        admin = self.factory.create_admin()
+        self.make_request(
+            "post",
+            "/api/settings/organization",
+            data={"email_csv_max_attachment_size_mb": 10},
+            user=admin,
+        )
+        self.assertEqual(
+            self.factory.org.get_setting("email_csv_max_attachment_size_mb"), 10
+        )

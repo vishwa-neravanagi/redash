@@ -45,6 +45,16 @@ SEND_EMAIL_ON_FAILED_SCHEDULED_QUERIES = parse_boolean(
 HIDE_PLOTLY_MODE_BAR = parse_boolean(os.environ.get("HIDE_PLOTLY_MODE_BAR", "false"))
 DISABLE_PUBLIC_URLS = parse_boolean(os.environ.get("REDASH_DISABLE_PUBLIC_URLS", "false"))
 
+EMAIL_CSV_COOLDOWN_SECONDS = int(os.environ.get("REDASH_EMAIL_CSV_COOLDOWN_SECONDS", 30))
+EMAIL_CSV_MAX_ATTACHMENT_SIZE_MB = int(os.environ.get("REDASH_EMAIL_CSV_MAX_ATTACHMENT_SIZE_MB", 25))
+S3_EMAIL_EXPORT_BUCKET = os.environ.get("REDASH_S3_EMAIL_EXPORT_BUCKET", "")
+S3_EMAIL_EXPORT_PREFIX = os.environ.get("REDASH_S3_EMAIL_EXPORT_PREFIX", "redash-csv-exports/")
+S3_EMAIL_EXPORT_ACCESS_KEY = os.environ.get("REDASH_S3_EMAIL_EXPORT_ACCESS_KEY", "")
+S3_EMAIL_EXPORT_SECRET_KEY = os.environ.get("REDASH_S3_EMAIL_EXPORT_SECRET_KEY", "")
+S3_EMAIL_EXPORT_REGION = os.environ.get("REDASH_S3_EMAIL_EXPORT_REGION", "")
+S3_EMAIL_EXPORT_LINK_MODE = parse_boolean(os.environ.get("REDASH_S3_EMAIL_EXPORT_LINK_MODE", "false"))
+S3_EMAIL_EXPORT_LINK_EXPIRY_SECONDS = int(os.environ.get("REDASH_S3_EMAIL_EXPORT_LINK_EXPIRY_SECONDS", 86400))
+
 settings = {
     "beacon_consent": None,
     "auth_password_login_enabled": PASSWORD_LOGIN_ENABLED,
@@ -73,4 +83,13 @@ settings = {
     "send_email_on_failed_scheduled_queries": SEND_EMAIL_ON_FAILED_SCHEDULED_QUERIES,
     "hide_plotly_mode_bar": HIDE_PLOTLY_MODE_BAR,
     "disable_public_urls": DISABLE_PUBLIC_URLS,
+    "email_csv_cooldown_seconds": EMAIL_CSV_COOLDOWN_SECONDS,
+    "email_csv_max_attachment_size_mb": EMAIL_CSV_MAX_ATTACHMENT_SIZE_MB,
+    "s3_email_export_bucket": S3_EMAIL_EXPORT_BUCKET,
+    "s3_email_export_prefix": S3_EMAIL_EXPORT_PREFIX,
+    "s3_email_export_access_key": S3_EMAIL_EXPORT_ACCESS_KEY,
+    "s3_email_export_secret_key": S3_EMAIL_EXPORT_SECRET_KEY,
+    "s3_email_export_region": S3_EMAIL_EXPORT_REGION,
+    "s3_email_export_link_mode": S3_EMAIL_EXPORT_LINK_MODE,
+    "s3_email_export_link_expiry_seconds": S3_EMAIL_EXPORT_LINK_EXPIRY_SECONDS,
 }

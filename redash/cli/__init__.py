@@ -65,6 +65,7 @@ def check_settings():
 
 
 @manager.command()
+@with_appcontext
 @click.argument("email", default=settings.MAIL_DEFAULT_SENDER, required=False)
 def send_test_mail(email=None):
     """

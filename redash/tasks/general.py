@@ -2,6 +2,7 @@ import requests
 from flask_mail import Message
 
 from redash import mail, models, settings
+from redash.app import create_app
 from redash.models import users
 from redash.query_runner import NotSupported
 from redash.tasks.worker import Queue
@@ -56,7 +57,9 @@ def send_mail(to, subject, html, text):
     try:
         message = Message(recipients=to, subject=subject, html=html, body=text)
 
-        mail.send(message)
+        app = create_app()
+        with app.app_context():
+            mail.send(message)
     except Exception:
         logger.exception("Failed sending message: %s", message.subject)
 

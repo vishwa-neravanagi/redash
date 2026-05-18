@@ -1,8 +1,7 @@
 import datetime
 
-from flask import current_app
-
 from redash import models, utils
+from redash.app import create_app
 from redash.worker import get_job_logger, job
 
 logger = get_job_logger(__name__)
@@ -10,9 +9,11 @@ logger = get_job_logger(__name__)
 
 def notify_subscriptions(alert, new_state, metadata):
     host = utils.base_url(alert.query_rel.org)
+    app = create_app()
     for subscription in alert.subscriptions:
         try:
-            subscription.notify(alert, alert.query_rel, subscription.user, new_state, current_app, host, metadata)
+            with app.app_context():
+                subscription.notify(alert, alert.query_rel, subscription.user, new_state, app, host, metadata)
         except Exception:
             logger.exception("Error with processing destination")
 

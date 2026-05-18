@@ -4,6 +4,7 @@ import boto3
 from flask_mail import Message
 
 from redash import mail, models
+from redash.app import create_app
 from redash.models import db
 from redash.serializers import serialize_query_result_to_dsv, serialize_query_result_to_xlsx
 from redash.worker import get_job_logger, job
@@ -124,6 +125,8 @@ def email_csv_task(result_id, query_id, query_name, user_email, file_extension, 
             )
             message.attach(filename, content_type, file_data)
 
-        mail.send(message)
+        app = create_app()
+        with app.app_context():
+            mail.send(message)
     except Exception:
         logger.exception("Failed to send email CSV export to %s", user_email)

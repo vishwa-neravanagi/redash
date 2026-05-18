@@ -44,12 +44,14 @@ def _convert_datetime(value, fmt):
     return ret
 
 
-def _get_column_lists(columns):
-    date_format = _convert_format(current_org.get_setting("date_format"))
+def _get_column_lists(columns, org=None):
+    if org is None:
+        org = current_org
+    date_format = _convert_format(org.get_setting("date_format"))
     datetime_format = _convert_format(
         "{} {}".format(
-            current_org.get_setting("date_format"),
-            current_org.get_setting("time_format"),
+            org.get_setting("date_format"),
+            org.get_setting("time_format"),
         )
     )
 
@@ -80,12 +82,12 @@ def serialize_query_result(query_result, is_api_user):
         return query_result.to_dict()
 
 
-def serialize_query_result_to_dsv(query_result, delimiter):
+def serialize_query_result_to_dsv(query_result, delimiter, org=None):
     s = io.StringIO()
 
     query_data = query_result.data
 
-    fieldnames, special_columns = _get_column_lists(query_data["columns"] or [])
+    fieldnames, special_columns = _get_column_lists(query_data["columns"] or [], org=org)
 
     writer = csv.DictWriter(s, extrasaction="ignore", fieldnames=fieldnames, delimiter=delimiter)
     writer.writeheader()

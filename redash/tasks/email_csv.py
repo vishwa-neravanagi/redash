@@ -25,10 +25,10 @@ def _build_filename(query_name, query_id, result_id, file_extension):
     return f"{safe_name}_{timestamp_ns}_{qid}_{result_id}.{file_extension}"
 
 
-def _generate_file_data(query_result, file_extension):
+def _generate_file_data(query_result, file_extension, org=None):
     if file_extension in ("csv", "tsv"):
         delimiter = "," if file_extension == "csv" else "\t"
-        return serialize_query_result_to_dsv(query_result, delimiter).encode("utf-8")
+        return serialize_query_result_to_dsv(query_result, delimiter, org=org).encode("utf-8")
     elif file_extension == "xlsx":
         return serialize_query_result_to_xlsx(query_result)
 
@@ -81,7 +81,7 @@ def email_csv_task(result_id, query_id, query_name, user_email, file_extension, 
 
         if not filename:
             filename = _build_filename(query_name, query_id, result_id, file_extension)
-        file_data = _generate_file_data(query_result, file_extension)
+        file_data = _generate_file_data(query_result, file_extension, org=org)
         content_type = CONTENT_TYPES.get(file_extension, "application/octet-stream")
 
         subject = f"Redash: CSV export — {filename}"

@@ -72,7 +72,7 @@ def _upload_to_s3(filename, file_data, content_type, org):
 @job("emails")
 def email_csv_task(result_id, query_id, query_name, user_email, file_extension, note, filename=None, org_id=None):
     try:
-        query_result = db.session.get(models.QueryResult, result_id)
+        query_result = models.QueryResult.query.get(result_id)
         if not query_result:
             logger.error("QueryResult %s not found", result_id)
             return

@@ -244,6 +244,7 @@ MAIL_PASSWORD = os.environ.get("REDASH_MAIL_PASSWORD", None)
 MAIL_DEFAULT_SENDER = os.environ.get("REDASH_MAIL_DEFAULT_SENDER", None)
 MAIL_MAX_EMAILS = os.environ.get("REDASH_MAIL_MAX_EMAILS", None)
 MAIL_ASCII_ATTACHMENTS = parse_boolean(os.environ.get("REDASH_MAIL_ASCII_ATTACHMENTS", "false"))
+USE_SES_FOR_MAIL = parse_boolean(os.environ.get("REDASH_USE_SES_FOR_MAIL", "false"))
 
 # Email CSV export settings:
 EMAIL_CSV_COOLDOWN_SECONDS = int(os.environ.get("REDASH_EMAIL_CSV_COOLDOWN_SECONDS", 30))
